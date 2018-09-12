@@ -70,7 +70,8 @@ public class Main {
 						"		elseif stack_count*stack_size>Appraiser.GetTrueItemCount(Appraiser.ActiveSellingItem.itemid,Appraiser.ActiveSellingItem.link) then")) {
 					System.out.println("Criteria found at row " + fileList.size() + "!");
 					line = reader.readLine();
-					if (!line.equals("			Appraiser:SetMaxStackSize()")) {
+					if (!line.equals("			Appraiser:SetMaxStackCount()")) {
+						fileList.addLast("			Appraiser:SetMaxStackCount()");
 						fileList.addLast("			Appraiser:SetMaxStackSize()");
 						System.out.println("Injecting FixStackSize patch");
 					} else {
