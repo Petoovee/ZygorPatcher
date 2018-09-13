@@ -5,6 +5,7 @@ public class Main {
 	public static void main(String[] args) {
 		FixStackSize();
 		FixRowCount();
+		FixIrrelevantResults();
 	}
 	
 	public static void FixIrrelevantResults() {
@@ -20,18 +21,39 @@ public class Main {
 			
 			while (line != null) {
 				fileList.addLast(line);
-				if (line.equals("local SELL_INVENTORY_DATA = {")) {
+				if (line.equals("	elseif status==\"noresults\" then")) {
 					System.out.println("Criteria found at row " + fileList.size() + "!");
 					line = reader.readLine();
-					if (line.equals("	ROW_COUNT = 14,")) {
-						fileList.addLast("	ROW_COUNT = 24,");
-						System.out.println("Injecting FixRowCount patch");
-					} else if(line.equals("	ROW_COUNT = 24,")) {
-						System.out.println("FixRowCount already patched");
-						fileList.addLast(line);
+					if (line.equals("		text = \"No results\"")) {
+						fileList.addLast("		for i,v in pairs(ZGV.db.char.GGbuyitems) do");
+						fileList.addLast("			if v.itemid == invItem.itemid then");
+						fileList.addLast("				table.remove(ZGV.db.char.GGbuyitems,i)");
+						fileList.addLast("			end");
+						fileList.addLast("		end");
+						System.out.println("Injecting FixIrrelevantResults part 1 patch");
+					} else if(line.equals("		for i,v in pairs(ZGV.db.char.GGbuyitems) do")) {
+						System.out.println("FixIrrelevantResults part 1 already patched");
 					} else {
 						System.out.println("Unknown error");
 					}
+					fileList.addLast(line);
+				}
+				if (line.equals("	elseif status==\"nodeals\" then")) {
+					System.out.println("Criteria found at row " + fileList.size() + "!");
+					line = reader.readLine();
+					if (line.equals("		text = \"No deals\"")) {
+						fileList.addLast("		for i,v in pairs(ZGV.db.char.GGbuyitems) do");
+						fileList.addLast("			if v.itemid == invItem.itemid then");
+						fileList.addLast("				table.remove(ZGV.db.char.GGbuyitems,i)");
+						fileList.addLast("			end");
+						fileList.addLast("		end");
+						System.out.println("Injecting FixIrrelevantResults part 2 patch");
+					} else if(line.equals("		for i,v in pairs(ZGV.db.char.GGbuyitems) do")) {
+						System.out.println("FixIrrelevantResults part 2 already patched");
+					} else {
+						System.out.println("Unknown error");
+					}
+					fileList.addLast(line);
 				}
 				line = reader.readLine();
 			}
@@ -56,26 +78,12 @@ public class Main {
 		/* Lua code to interpret and inject
 		 * Taken from -Buy.lua@728
 		 * To be injected into -Buy.lua@297
-	local targetTable
-	if row.item.source==Appraiser.ShoppingModes.GOLD then  -- item from gold guide
-		targetTable = ZGV.db.char.GGbuyitems
-	elseif row.item.source==Appraiser.ShoppingModes.MANUAL then  -- item added by player
-		targetTable = self.ManualBuyItems
-	elseif row.item.source==Appraiser.ShoppingModes.GUIDE then  -- item added from guide
-		targetTable = self.GuideBuyItems
-	end
-
-	local itemid = row.item.itemid
-	local count = row.item.count	
-
-	for i,v in pairs(targetTable) do
-		if v.itemid == itemid then
-			table.remove(targetTable,i)
+		 * 	
+	for i,v in pairs(ZGV.db.char.GGbuyitems) do
+		if v.itemid == invItem.itemid then
+			table.remove(ZGV.db.char.GGbuyitems,i)
 		end
 	end
-
-	for i,r in pairs(Appraiser.Buy_Frame.ShoppingList.rows) do  r.active = false  end
-	ZGV.Goldguide:Update()
 		 */
 	}
 
